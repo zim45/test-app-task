@@ -1,211 +1,105 @@
-Task and User Management API
-This application is a simple API for managing users and tasks, built using Yii2 and MongoDB. The API supports CRUD operations on users and tasks, including validation of task status transitions and pagination for retrieving tasks and users.
+# Task and User Management API
 
-Prerequisites
-Before running the application, make sure you have the following:
+This repository contains the implementation of a RESTful API for managing `Task` and `User` resources, using the Yii2 framework and MongoDB. It includes models, controllers, and API endpoints for creating, reading, updating, and deleting tasks and users.
 
-PHP 7.4 or higher
+## Models
 
-Yii2 Framework
+### Task Model
 
-MongoDB server installed and running
+The `Task` model represents a task in the system, with the following fields:
 
-Composer installed to manage dependencies
+- `_id` (ObjectId): The unique identifier of the task.
+- `title` (string): The title of the task.
+- `description` (string): A detailed description of the task.
+- `status` (integer): The current status of the task.
+- `start_date` (datetime): The start date and time of the task.
+- `user_id` (ObjectId): The ID of the user who owns the task.
 
-Installation
-Clone this repository:
+#### Status Constants
 
-bash
-Copy
-Edit
-git clone <repository-url>
-cd <repository-directory>
-Install dependencies using Composer:
+- `STATUS_NEW = 0`
+- `STATUS_IN_PROGRESS = 1`
+- `STATUS_FINISHED = 2`
+- `STATUS_FAILED = 3`
 
-bash
-Copy
-Edit
-composer install
-Set up the MongoDB database:
+#### Relationships
 
-Ensure your MongoDB instance is running.
+- **User**: A task belongs to a user (`user_id`).
 
-The application will automatically use the task and user collections in MongoDB.
+### User Model
 
-API Endpoints
-User Endpoints
-GET /users
-Fetch a list of users with pagination.
+The `User` model represents a user in the system, with the following fields:
 
-GET /users/{id}
-Retrieve a single user by ID.
+- `_id` (ObjectId): The unique identifier of the user.
+- `login` (string): The login name of the user.
+- `password` (string): The user's password.
+- `first_name` (string): The user's first name.
+- `last_name` (string): The user's last name.
+- `email` (string): The user's email address.
+- `registration_date` (datetime): The registration date and time of the user.
 
-POST /users
-Create a new user. The request body must include the following fields:
+#### Relationships
 
-login: Unique username.
+- **Tasks**: A user can have multiple tasks.
 
-password: Password (at least 6 characters, containing letters, digits, and special characters).
+## Controllers
 
-first_name: First name (capitalized).
+### Task Controller
 
-last_name: Last name (capitalized).
+This controller handles the following actions:
 
-email: Unique email address.
+- `index`: Lists all tasks for a given user.
+- `view`: Retrieves a task by its ID.
+- `task-create`: Creates a new task.
+- `updateUserTask`: Updates a task for a specific user.
+- `delete`: Deletes a task by ID.
+- `deleteAll`: Deletes all tasks with `status` set to `STATUS_NEW` for a specific user.
+- `stats`: Retrieves the task status statistics for a specific user.
+- `globalStats`: Retrieves global task status statistics.
 
-PUT /users/{id}
-Update the user information by ID.
+### User Controller
 
-DELETE /users/{id}
-Delete a user by ID.
+This controller handles the following actions:
 
-Task Endpoints
-GET /tasks
-Fetch a list of tasks for a specific user. The request must include the id parameter to specify the user.
+- `index`: Lists all users.
+- `view`: Retrieves a user by ID.
+- `create`: Creates a new user.
+- `update`: Updates a user by ID.
+- `delete`: Deletes a user by ID.
 
-POST /tasks
-Create a new task. The request body must include the following fields:
+## Example API Endpoints
 
-title: Title of the task.
+### Task Endpoints
 
-description: Description of the task.
+- `GET /tasks/{id}` - Retrieve tasks for a user.
+- `POST /task-create` - Create a new task.
+- `GET /task/{task_id}/user/{id}` - Retrieve a specific task for a user.
+- `PUT /task/{task_id}/user/{id}` - Update a specific task for a user.
+- `DELETE /task/{task_id}/user/{id}` - Delete a task by ID.
+- `DELETE /tasks/{id}/deleteAll` - Delete all `NEW` tasks for a user.
+- `GET /tasks/{id}/stats` - Retrieve statistics of tasks for a user.
+- `GET /tasks/globalStats` - Retrieve global task statistics.
 
-status: Task status (New, In Progress, Finished, Failed).
+### User Endpoints
 
-start_date: Task start date in d-m-Y H:i format.
+- `GET /users` - List all users.
+- `POST /users` - Create a new user.
+- `GET /user/{id}` - Retrieve a user by ID.
+- `PUT /user/{id}` - Update a user by ID.
+- `DELETE /user/{id}` - Delete a user by ID.
 
-user_id: User ID associated with the task.
+## Installation
 
-GET /tasks/{task_id}
-Retrieve a task by its ID.
+### Requirements
 
-PUT /tasks/{task_id}
-Update a task's information by task ID.
+- PHP 7.4 or higher
+- Yii2 Framework
+- MongoDB
+- Composer
 
-DELETE /tasks/{task_id}
-Delete a task by ID. Only tasks with status New can be deleted.
+### Installation Steps
 
-GET /tasks/{user_id}/stats
-Retrieve task statistics for a specific user, grouped by status.
-
-GET /tasks/stats
-Retrieve global task statistics, grouped by status.
-
-DELETE /tasks/{user_id}/delete-all
-Delete all tasks for a specific user with status New.
-
-Task Status Transitions
-Tasks can only transition between the following statuses:
-
-New → In Progress
-
-In Progress → Finished or Failed
-
-Tasks with invalid status transitions will return an error message.
-
-Models
-User Model
-The User model represents a user in the system. It includes the following fields:
-
-_id: MongoDB Object ID (auto-generated).
-
-login: Unique username.
-
-password: Encrypted password.
-
-first_name: User's first name.
-
-last_name: User's last name.
-
-email: Unique email address.
-
-registration_date: Date and time when the user registered.
-
-The User model has the following relationships:
-
-Tasks: A user can have many tasks.
-
-Task Model
-The Task model represents a task in the system. It includes the following fields:
-
-_id: MongoDB Object ID (auto-generated).
-
-title: Task title.
-
-description: Task description.
-
-status: Task status (New, In Progress, Finished, Failed).
-
-start_date: Date and time when the task was created.
-
-user_id: ID of the user associated with the task.
-
-The Task model includes the following methods:
-
-validateStatusOnCreate(): Ensures that new tasks have a New status upon creation.
-
-beforeSave(): Validates task status transitions.
-
-Validation
-User model ensures that:
-
-login, email are unique.
-
-password meets security criteria (letters, digits, special characters).
-
-first_name and last_name are capitalized.
-
-Task model ensures:
-
-Valid task status transitions.
-
-start_date is in the correct format.
-
-Errors
-The API returns standard HTTP error codes in case of invalid requests:
-
-400 Bad Request: Validation failed or missing required fields.
-
-404 Not Found: Resource not found.
-
-500 Internal Server Error: Server-side error.
-
-Example Requests
-Create User
-bash
-Copy
-Edit
-POST /users
-Content-Type: application/json
-
-{
-  "login": "johndoe",
-  "password": "password123!",
-  "first_name": "John",
-  "last_name": "Doe",
-  "email": "john.doe@example.com"
-}
-Create Task
-bash
-Copy
-Edit
-POST /tasks
-Content-Type: application/json
-
-{
-  "title": "Test Task",
-  "description": "Description of the task",
-  "status": 0,
-  "start_date": "30-03-2025 14:00",
-  "user_id": "user_id_here"
-}
-Update Task
-bash
-Copy
-Edit
-PUT /tasks/{task_id}
-Content-Type: application/json
-
-{
-  "status": 1
-}
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/task-user-management-api.git
+   cd task-user-management-api
